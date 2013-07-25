@@ -1,0 +1,98 @@
+extends layout
+block head-css
+	link(rel="stylesheet", href="bower_components/sass-bootstrap/bootstrap-2.3.2.min.css")
+block content
+	h1= title
+	button.btn(id="getRegion") 获取region
+	#container
+	script(type="text/html", id="J_tmpl_region")
+		ul.list
+			{{ for(var i = 0, len = regions.length; i < len; i ++){ }}
+			li.data-region{{= regions[i].RegionId }}
+				button.btn.btn-mini.J_btn_get_zone(data-id="{{= regions[i].RegionId }}") 获取Zone
+			{{ } }}
+	script(type="text/html", id="J_tmpl_zone")
+		ul.list
+			{{ for(var i = 0, len = zones.length; i < len; i ++){ }}
+			li{{= zones[i].ZoneId }}
+				button.btn.btn-mini.J_btn_get_instance_list(data-id="{{= zones[i].ZoneId }}") 获取实例列表
+			{{ } }}
+	script(type="text/html", id="J_tmpl_instance")
+		ul.list
+			{{ if(instances.length > 0){ }}
+			{{ for(var i = 0, len = instances.length; i < len; i ++){ }}
+			li{{= instances[i].InstanceId }}
+				span.label {{= instances[i].Status }}
+				button.btn.btn-mini.J_btn_get_instance_detail(data-id="{{= instances[i].InstanceId }}") 获取实例详情
+				button.btn.btn-mini.J_btn_get_instance_monitor(data-id="{{= instances[i].InstanceId }}") 获取监控信息
+			{{ } }}
+			{{ }else{ }}
+			li 该zone下没有机器
+			{{ } }}
+	script(type="text/html", id="J_tmpl_instance_detail")
+		
+	script(type="text/html", id="J_tmpl_obj")
+		{{ if(typeof obj === 'object'){ }}
+		ul.list
+			{{ for (var i in obj){ }}
+			li
+				{{= i }}: 
+				span.label.label-success{{= obj[i] }}
+				{{ include("J_tmpl_obj", {obj: obj[i]}) }}
+			{{ } }}
+		{{ } }}
+
+block footer
+	script(src="javascripts/jquery.js")
+	script(src="javascripts/template.min.js")
+	script.
+		template.openTag = '{{';
+		template.closeTag = '}}';
+		//获取region
+		$('#getRegion').on('click', function(){
+			$.get('/api/DescribeRegions', function(json){
+				//console.log(json);
+				var regions = json.data.Regions.Region;
+				$('#container').html(template.render('J_tmpl_region', {regions: regions}));
+			})
+		});
+		//获取Zone
+		$(document).on('click', '.J_btn_get_zone', function(e){
+			var li = $(this).parent('li');
+			var regionId = $(this).attr('data-id');
+			$.get('/api/DescribeZones/', {RegionId: regionId}, function(json){
+				console.log(json);
+				var zones = json.data.Zones.Zone;
+				li.append(template.render('J_tmpl_zone', {zones: zones}));
+			})
+		});
+		//获取实例列表
+		$(document).on('click', '.J_btn_get_instance_list', function(e){
+			var li = $(this).parent('li');
+			var zoneId = $(this).attr('data-id');
+			var regionId = $(this).closest('ul').siblings('.J_btn_get_zone').attr('data-id');
+			$.get('/api/DescribeInstanceStatus/', {RegionId: regionId, ZoneId: zoneId}, function(json){
+				console.log(json)
+				var instanceStatuses = json.data.InstanceStatuses.InstanceStatus || [];
+				li.append(template.render('J_tmpl_instance', {instances: instanceStatuses}))
+			})
+		});
+		//获取vm详情
+		$(document).on('click', '.J_btn_get_instance_detail', function(e){
+			var li = $(this).parent('li');
+			var instanceId = $(this).attr('data-id');
+			$.get('/api/DescribeInstanceAttribute', {InstanceId: instanceId}, function(json){
+				console.log(json);
+				li.append(template.render('J_tmpl_obj', {obj: json.data}));
+			})
+		});
+		//获取监控信息
+		$(document).on('click', '.J_btn_get_instance_monitor', function(e){
+			var li = $(this).parent('li');
+			var regionId = $(this).closest('.data-region').find('.J_btn_get_zone').attr('data-id');
+			var instanceId = $(this).attr('data-id');
+			$.get('/api/GetMonitorData', {RegionId: regionId, InstanceId: instanceId}, function(json){
+				console.log(json);
+				li.append(template.render('J_tmpl_obj', {obj: json.data}));
+			})
+		})
