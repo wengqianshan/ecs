@@ -32,13 +32,16 @@ block content
 	script(type="text/html", id="J_tmpl_instance_detail")
 		
 	script(type="text/html", id="J_tmpl_obj")
+		{{ if(!obj){ }}
+		| obj not found!
+		{{ } }}
 		{{ if(typeof obj === 'object'){ }}
 		ul.list
 			{{ for (var i in obj){ }}
 			li
 				{{= i }}: 
 				{{ if(typeof obj[i] !== 'object'){ }}
-				span.label.label-success{{= obj[i] }}
+				span.label.label-success{{= obj[i].toString() }}
 				{{ }else{ }}
 				{{ include("J_tmpl_obj", {obj: obj[i]}) }}
 				{{ } }}
