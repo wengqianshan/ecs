@@ -37,8 +37,11 @@ block content
 			{{ for (var i in obj){ }}
 			li
 				{{= i }}: 
+				{{ if(typeof obj[i] !== 'object'){ }}
 				span.label.label-success{{= obj[i] }}
+				{{ }else{ }}
 				{{ include("J_tmpl_obj", {obj: obj[i]}) }}
+				{{ } }}
 			{{ } }}
 		{{ } }}
 
