@@ -21,7 +21,8 @@ block content
 		ul.list
 			{{ if(instances.length > 0){ }}
 			{{ for(var i = 0, len = instances.length; i < len; i ++){ }}
-			li{{= instances[i].InstanceId }}
+			li
+				strong{{= instances[i].InstanceId }}
 				span.label {{= instances[i].Status }}
 				button.btn.btn-mini.J_btn_get_instance_detail(data-id="{{= instances[i].InstanceId }}") 获取实例详情
 				button.btn.btn-mini.J_btn_get_instance_monitor(data-id="{{= instances[i].InstanceId }}") 获取监控信息
@@ -30,7 +31,7 @@ block content
 			li 该zone下没有机器
 			{{ } }}
 	script(type="text/html", id="J_tmpl_instance_detail")
-		
+	//对象模板
 	script(type="text/html", id="J_tmpl_obj")
 		{{ if(!obj){ }}
 		| obj not found!
@@ -39,7 +40,7 @@ block content
 		ul.list
 			{{ for (var i in obj){ }}
 			li
-				{{= i }}: 
+				strong{{= i }}: 
 				{{ if(typeof obj[i] !== 'object'){ }}
 				span.label.label-success{{= obj[i].toString() }}
 				{{ }else{ }}
